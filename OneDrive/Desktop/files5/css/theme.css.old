@@ -1,0 +1,468 @@
+/* =============================================================================
+   DASHIO - Main Stylesheet (CSS)
+   Minimal styles, maximum Bootstrap utilities
+   ============================================================================= */
+
+:root {
+  --primary: #4f46e5;
+  --secondary: #64748b;
+  --success: #10b981;
+  --info: #0ea5e9;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --light: #f8fafc;
+  --dark: #0f172a;
+  --sidebar-width: 280px;
+  --box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --box-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+/* Light mode colors */
+[data-bs-theme="light"] {
+  --bs-body-color: #0f172a;
+  --bs-body-bg: #ffffff;
+  --bs-tertiary-bg: #f1f5f9;
+  --bs-secondary-color: #64748b;
+  --bs-border-color: #e2e8f0;
+}
+
+/* Dark mode colors */
+[data-bs-theme="dark"] {
+  --bs-body-color: #f1f5f9;
+  --bs-body-bg: #0f172a;
+  --bs-tertiary-bg: #1e293b;
+  --bs-secondary-color: #94a3b8;
+  --bs-border-color: #334155;
+}
+
+/* =============================================================================
+   Layout - Wrapper & Main Content
+   ============================================================================= */
+
+.wrapper {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: row;
+}
+
+.main-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* =============================================================================
+   Sidebar
+   ============================================================================= */
+
+.sidebar {
+  width: var(--sidebar-width);
+  flex-shrink: 0;
+  background-color: var(--bs-tertiary-bg);
+  border-right: 1px solid var(--bs-border-color);
+  display: flex;
+  flex-direction: column;
+  
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  transition: width 0.2s ease-in-out;
+}
+
+/* Scrollbar styling */
+.sidebar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background-color: var(--bs-border-color);
+  border-radius: 2px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background-color: var(--bs-secondary-color);
+}
+
+/* =============================================================================
+   Sidebar Navigation
+   ============================================================================= */
+
+.sidebar-nav {
+  flex-grow: 1;
+}
+
+.sidebar-nav .nav-link {
+  border-radius: 0.5rem;
+  padding: 0.625rem 1rem;
+  color: var(--bs-body-color);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  transition: all 0.15s ease-in-out;
+  position: relative;
+}
+
+.sidebar-nav .nav-link:hover {
+  background-color: var(--bs-tertiary-bg);
+}
+
+.sidebar-nav .nav-link.active {
+  background-color: var(--primary);
+  color: #ffffff;
+}
+
+.sidebar-nav .nav-link i {
+  font-size: 1.125rem;
+  width: 1.5rem;
+  text-align: center;
+}
+
+.sidebar-nav .nav-header {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--bs-secondary-color);
+  padding: 1.25rem 1rem 0.5rem;
+  margin-top: 0.5rem;
+}
+
+/* =============================================================================
+   Header
+   ============================================================================= */
+
+header {
+  background-color: var(--bs-body-bg);
+  border-bottom: 1px solid var(--bs-border-color);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+header .input-group {
+  background-color: var(--bs-tertiary-bg);
+  border-radius: 0.5rem;
+  border: 1px solid var(--bs-border-color);
+}
+
+header .input-group .form-control {
+  background-color: transparent;
+  border: none;
+  color: var(--bs-body-color);
+}
+
+header .input-group .form-control::placeholder {
+  color: var(--bs-secondary-color);
+}
+
+header .input-group .input-group-text {
+  background-color: transparent;
+  border: none;
+  color: var(--bs-secondary-color);
+}
+
+/* =============================================================================
+   Stats Cards
+   ============================================================================= */
+
+.stat-card {
+  transition: all 0.15s ease-in-out;
+  border: 1px solid var(--bs-border-color);
+  background-color: var(--bs-body-bg);
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--box-shadow-lg);
+}
+
+/* =============================================================================
+   Color Switcher
+   ============================================================================= */
+
+.color-swatch {
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+  border: 2px solid transparent !important;
+}
+
+.color-swatch:hover {
+  transform: scale(1.1);
+}
+
+.color-swatch.active {
+  border-color: var(--bs-body-color) !important;
+  box-shadow: 0 0 0 2px var(--bs-body-bg);
+}
+
+/* =============================================================================
+   Theme Toggle & Icons
+   ============================================================================= */
+
+.btn-link {
+  color: var(--bs-body-color);
+  text-decoration: none;
+  transition: color 0.15s ease-in-out;
+}
+
+.btn-link:hover {
+  color: var(--primary);
+}
+
+/* =============================================================================
+   Dynamic Primary Color Overrides
+   ============================================================================= */
+
+:root {
+  --bs-primary: var(--primary);
+  --bs-primary-rgb: 79, 70, 229;
+}
+
+/* Buttons */
+.btn-primary {
+  --bs-btn-bg: var(--bs-primary);
+  --bs-btn-border-color: var(--bs-primary);
+  --bs-btn-hover-bg: #4338ca;
+  --bs-btn-hover-border-color: #4338ca;
+  --bs-btn-active-bg: #3730a3;
+  --bs-btn-active-border-color: #3730a3;
+}
+
+.btn-outline-primary {
+  --bs-btn-color: var(--bs-primary);
+  --bs-btn-border-color: var(--bs-primary);
+  --bs-btn-hover-bg: var(--bs-primary);
+  --bs-btn-hover-border-color: var(--bs-primary);
+  --bs-btn-active-bg: var(--bs-primary);
+  --bs-btn-active-border-color: var(--bs-primary);
+}
+
+/* Background utilities */
+.bg-primary {
+  background-color: var(--bs-primary) !important;
+}
+
+.bg-primary-subtle {
+  background-color: rgba(79, 70, 229, 0.1) !important;
+}
+
+/* Text utilities */
+.text-primary {
+  color: var(--bs-primary) !important;
+}
+
+/* Border utilities */
+.border-primary {
+  border-color: var(--bs-primary) !important;
+}
+
+/* Links */
+a, .nav-link, .breadcrumb-item a {
+  color: var(--bs-primary);
+}
+
+a:hover, .nav-link:hover, .breadcrumb-item a:hover {
+  color: #3730a3;
+}
+
+/* Form elements */
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--bs-primary);
+  box-shadow: 0 0 0 0.25rem rgba(79, 70, 229, 0.25);
+}
+
+.form-check-input:checked {
+  background-color: var(--bs-primary);
+  border-color: var(--bs-primary);
+}
+
+.form-check-input:focus {
+  border-color: var(--bs-primary);
+  box-shadow: 0 0 0 0.25rem rgba(79, 70, 229, 0.25);
+}
+
+/* Progress bar */
+.progress-bar {
+  background-color: var(--bs-primary);
+}
+
+/* List group */
+.list-group-item.active {
+  background-color: var(--bs-primary);
+  border-color: var(--bs-primary);
+}
+
+/* Pagination */
+.page-item.active .page-link {
+  background-color: var(--bs-primary);
+  border-color: var(--bs-primary);
+}
+
+/* Nav pills */
+.nav-pills .nav-link.active {
+  background-color: var(--bs-primary);
+}
+
+/* Badges */
+.badge.bg-primary {
+  background-color: var(--bs-primary) !important;
+}
+
+/* Alerts */
+.alert-primary {
+  background-color: rgba(79, 70, 229, 0.1);
+  border-color: rgba(79, 70, 229, 0.2);
+  color: var(--bs-primary);
+}
+
+/* Dropdown */
+.dropdown-item.active,
+.dropdown-item:active {
+  background-color: var(--bs-primary);
+}
+
+/* =============================================================================
+   Responsive - Mobile Sidebar
+   ============================================================================= */
+
+@media (max-width: 991.98px) {
+  .sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100vh;
+    z-index: 1040;
+    transform: translateX(-100%);
+    transition: transform 0.2s ease-in-out;
+  }
+
+  .sidebar.show {
+    transform: translateX(0);
+  }
+
+  .sidebar-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 1035;
+    background-color: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s, visibility 0.2s;
+  }
+
+  .sidebar-backdrop.show {
+    display: block;
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
+/* =============================================================================
+   Cards & Shadows
+   ============================================================================= */
+
+.card {
+  border: 1px solid var(--bs-border-color);
+  background-color: var(--bs-body-bg);
+  box-shadow: var(--box-shadow);
+  border-radius: 0.5rem;
+}
+
+.card-header {
+  background-color: var(--bs-body-bg);
+  border-bottom: 1px solid var(--bs-border-color);
+  border-radius: 0.5rem 0.5rem 0 0;
+}
+
+.card-footer {
+  background-color: var(--bs-tertiary-bg);
+  border-top: 1px solid var(--bs-border-color);
+  border-radius: 0 0 0.5rem 0.5rem;
+}
+
+/* =============================================================================
+   List Groups
+   ============================================================================= */
+
+.list-group-item {
+  background-color: var(--bs-body-bg);
+  border-color: var(--bs-border-color);
+}
+
+.list-group-item:hover {
+  background-color: var(--bs-tertiary-bg);
+}
+
+/* =============================================================================
+   Dropdowns
+   ============================================================================= */
+
+.dropdown-menu {
+  background-color: var(--bs-body-bg);
+  border: 1px solid var(--bs-border-color);
+  border-radius: 0.5rem;
+  box-shadow: var(--box-shadow-lg);
+}
+
+.dropdown-item {
+  color: var(--bs-body-color);
+}
+
+.dropdown-item:hover {
+  background-color: var(--bs-tertiary-bg);
+}
+
+/* =============================================================================
+   Footer
+   ============================================================================= */
+
+footer {
+  background-color: var(--bs-body-bg);
+  border-top: 1px solid var(--bs-border-color);
+  margin-top: auto;
+}
+
+/* =============================================================================
+   Utility Classes
+   ============================================================================= */
+
+.min-w-0 {
+  min-width: 0;
+}
+
+.text-body-secondary {
+  color: var(--bs-secondary-color) !important;
+}
+
+.bg-opacity-10 {
+  opacity: 0.1;
+}
+
+.bg-opacity-25 {
+  opacity: 0.25;
+}
+
+/* =============================================================================
+   Print Styles
+   ============================================================================= */
+
+@media print {
+  .sidebar,
+  header,
+  footer {
+    display: none;
+  }
+
+  .main-content {
+    width: 100%;
+  }
+}
