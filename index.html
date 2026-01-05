@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Field Services - Payabli Integration</title>
+  <link rel="stylesheet" href="styles-dashio.css">
+</head>
+<body>
+  <!-- Top Navigation Bar -->
+  <header class="top-navbar">
+    <div class="navbar-left">
+      <div class="logo">
+        <span class="logo-icon">⚡</span>
+        <span class="logo-text">Field Services</span>
+      </div>
+    </div>
+    <div class="navbar-center">
+      <div class="search-bar">
+        <span class="search-icon">🔍</span>
+        <input type="text" placeholder="Type to search...">
+      </div>
+    </div>
+    <div class="navbar-right">
+      <div class="user-profile">
+        <span class="user-avatar">👤</span>
+        <span class="user-name">Admin</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="app-container">
+    <!-- Left Navigation Sidebar -->
+    <nav class="sidebar">
+      <div class="nav-section">
+        <div class="nav-title">Main</div>
+        <button class="nav-button active" data-section="dashboard">
+          <span class="icon">📊</span>
+          <span>Dashboard</span>
+        </button>
+      </div>
+      
+      <div class="nav-section">
+        <div class="nav-title">Customers</div>
+        <button class="nav-button" data-section="customers">
+          <span class="icon">➕</span>
+          <span>Add Customer</span>
+        </button>
+        <button class="nav-button" data-section="view-customers">
+          <span class="icon">👥</span>
+          <span>View Customers</span>
+        </button>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-title">Invoices</div>
+        <button class="nav-button" data-section="create-invoice">
+          <span class="icon">📝</span>
+          <span>Create Invoice</span>
+        </button>
+        <button class="nav-button" data-section="view-invoices">
+          <span class="icon">📑</span>
+          <span>View Invoices</span>
+        </button>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-title">Settings</div>
+        <button class="nav-button" onclick="showConfig()">
+          <span class="icon">⚙️</span>
+          <span>Config</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- Customers Section -->
+      <!-- Dashboard Section -->
+      <section id="section-dashboard" class="section active">
+        <div class="dashboard-wrapper">
+          <!-- Top Header -->
+          <div class="dashboard-top-header">
+            <div>
+              <h1>Dashboard</h1>
+              <p>Field Services Overview</p>
+            </div>
+          </div>
+
+          <!-- Main Dashboard Content -->
+          <div class="dashboard-content">
+            <!-- KPI Cards -->
+            <div class="kpi-grid">
+              <div class="kpi-card">
+                <div class="kpi-label">Total Revenue</div>
+                <div class="kpi-value" id="kpi-total-revenue">$0</div>
+                <div class="kpi-subtext">All invoices paid</div>
+              </div>
+
+              <div class="kpi-card">
+                <div class="kpi-label">Pending</div>
+                <div class="kpi-value" id="kpi-pending">$0</div>
+                <div class="kpi-subtext"><span id="kpi-pending-count">0</span> invoices</div>
+              </div>
+
+              <div class="kpi-card">
+                <div class="kpi-label">Overdue</div>
+                <div class="kpi-value" id="kpi-overdue">$0</div>
+                <div class="kpi-subtext" id="kpi-overdue-days">No overdue invoices</div>
+              </div>
+
+              <div class="kpi-card">
+                <div class="kpi-label">Payment Success Rate</div>
+                <div class="kpi-value" id="kpi-success-rate">0%</div>
+                <div class="kpi-trend neutral" id="kpi-success-trend">
+                  <span>↔</span>
+                  <span id="kpi-success-percent">0% sent</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Charts Grid -->
+            <div class="charts-grid">
+              <div class="chart-card">
+                <div class="chart-header">
+                  <div class="chart-title">Revenue Trend</div>
+                  <div class="chart-dropdown">
+                    <select id="revenue-trend-period" onchange="DashboardManager.updateRevenueTrend()">
+                      <option value="h24">Last 24 Hours</option>
+                      <option value="wtd">Week to Date</option>
+                      <option value="lastw">Last Week</option>
+                      <option value="mtd">Month to Date</option>
+                      <option value="d30" selected>Last 30 Days</option>
+                      <option value="lastm">Last Month</option>
+                      <option value="ytd">Year to Date</option>
+                      <option value="m12">Last 12 Months</option>
+                    </select>
+                  </div>
+                </div>
+                <div style="padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 220px;">
+                  <canvas id="revenueTrendChart" style="max-height: 200px; width: 100%;"></canvas>
+                </div>
+              </div>
+
+              <div class="chart-card">
+                <div class="chart-title">Payment Acceptance</div>
+                <div id="payment-acceptance-container" style="padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 220px; gap: 20px;">
+                  <!-- Three circles will be inserted here -->
+                </div>
+              </div>
+
+              <div class="chart-card">
+                <div class="chart-title">Quick Stats</div>
+                <div style="padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 220px;">
+                  <div class="quick-stats-grid">
+                    <div class="quick-stat-item">
+                      <div class="quick-stat-value" id="stat-total-customers">0</div>
+                      <div class="quick-stat-label">Customers</div>
+                    </div>
+                    <div class="quick-stat-item">
+                      <div class="quick-stat-value" id="stat-total-invoices">0</div>
+                      <div class="quick-stat-label">Invoices</div>
+                    </div>
+                    <div class="quick-stat-item">
+                      <div class="quick-stat-value" id="stat-paid-invoices">0</div>
+                      <div class="quick-stat-label">Paid</div>
+                    </div>
+                    <div class="quick-stat-item">
+                      <div class="quick-stat-value" id="stat-pending-invoices">0</div>
+                      <div class="quick-stat-label">Pending</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Recent Activity Card -->
+            <div class="activity-card">
+              <div class="activity-card-header">
+                <h3>Recent Activity</h3>
+                <a href="#" onclick="event.preventDefault(); document.querySelector('[data-section=view-invoices]').click();">View all activity</a>
+              </div>
+              <div class="activity-card-body">
+                <div id="activity-feed">
+                  <div class="activity-empty">
+                    <div class="activity-empty-icon">📋</div>
+                    <div>No activity yet</div>
+                    <div style="font-size: 0.75rem; margin-top: 4px; color: var(--text-muted);">Create customers and invoices to see activity here</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="section-customers" class="section">
+        <div class="section-content">
+          <h2 style="margin-bottom: 24px;">Add Customer</h2>
+          <form id="customer-form">
+            <div class="form-group">
+              <label for="firstName">First Name *</label>
+              <input type="text" id="firstName" name="firstName" required>
+            </div>
+
+            <div class="form-group">
+              <label for="lastName">Last Name *</label>
+              <input type="text" id="lastName" name="lastName" required>
+            </div>
+
+            <div class="form-group">
+              <label for="email">Email *</label>
+              <input type="email" id="email" name="email" required>
+            </div>
+
+            <div class="form-group">
+              <label for="phone">Phone *</label>
+              <input type="tel" id="phone" name="phone" required placeholder="e.g., (555) 123-4567">
+            </div>
+
+            <div class="form-group">
+              <label for="company">Company</label>
+              <input type="text" id="company" name="company">
+            </div>
+
+            <div class="form-group">
+              <label for="address">Address</label>
+              <input type="text" id="address" name="address">
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="city">City</label>
+                <input type="text" id="city" name="city">
+              </div>
+              <div class="form-group">
+                <label for="state">State</label>
+                <select id="state" name="state">
+                  <option value="">Select State</option>
+                  <option value="AK">Alaska (AK)</option>
+                  <option value="AL">Alabama (AL)</option>
+                  <option value="AR">Arkansas (AR)</option>
+                  <option value="AS">American Samoa (AS)</option>
+                  <option value="AZ">Arizona (AZ)</option>
+                  <option value="CA">California (CA)</option>
+                  <option value="CO">Colorado (CO)</option>
+                  <option value="CT">Connecticut (CT)</option>
+                  <option value="DC">District of Columbia (DC)</option>
+                  <option value="DE">Delaware (DE)</option>
+                  <option value="FL">Florida (FL)</option>
+                  <option value="GA">Georgia (GA)</option>
+                  <option value="GU">Guam (GU)</option>
+                  <option value="HI">Hawaii (HI)</option>
+                  <option value="IA">Iowa (IA)</option>
+                  <option value="ID">Idaho (ID)</option>
+                  <option value="IL">Illinois (IL)</option>
+                  <option value="IN">Indiana (IN)</option>
+                  <option value="KS">Kansas (KS)</option>
+                  <option value="KY">Kentucky (KY)</option>
+                  <option value="LA">Louisiana (LA)</option>
+                  <option value="MA">Massachusetts (MA)</option>
+                  <option value="MD">Maryland (MD)</option>
+                  <option value="ME">Maine (ME)</option>
+                  <option value="MI">Michigan (MI)</option>
+                  <option value="MN">Minnesota (MN)</option>
+                  <option value="MO">Missouri (MO)</option>
+                  <option value="MP">Northern Mariana Islands (MP)</option>
+                  <option value="MS">Mississippi (MS)</option>
+                  <option value="MT">Montana (MT)</option>
+                  <option value="NC">North Carolina (NC)</option>
+                  <option value="ND">North Dakota (ND)</option>
+                  <option value="NE">Nebraska (NE)</option>
+                  <option value="NH">New Hampshire (NH)</option>
+                  <option value="NJ">New Jersey (NJ)</option>
+                  <option value="NM">New Mexico (NM)</option>
+                  <option value="NV">Nevada (NV)</option>
+                  <option value="NY">New York (NY)</option>
+                  <option value="OH">Ohio (OH)</option>
+                  <option value="OK">Oklahoma (OK)</option>
+                  <option value="OR">Oregon (OR)</option>
+                  <option value="PA">Pennsylvania (PA)</option>
+                  <option value="PR">Puerto Rico (PR)</option>
+                  <option value="RI">Rhode Island (RI)</option>
+                  <option value="SC">South Carolina (SC)</option>
+                  <option value="SD">South Dakota (SD)</option>
+                  <option value="TN">Tennessee (TN)</option>
+                  <option value="TX">Texas (TX)</option>
+                  <option value="UM">U.S. Minor Outlying Islands (UM)</option>
+                  <option value="UT">Utah (UT)</option>
+                  <option value="VA">Virginia (VA)</option>
+                  <option value="VI">Virgin Islands (VI)</option>
+                  <option value="VT">Vermont (VT)</option>
+                  <option value="WA">Washington (WA)</option>
+                  <option value="WI">Wisconsin (WI)</option>
+                  <option value="WV">West Virginia (WV)</option>
+                  <option value="WY">Wyoming (WY)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="zip">ZIP</label>
+                <input type="text" id="zip" name="zip">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="service-type">Service Type *</label>
+              <select id="service-type" name="serviceType" required>
+                <option value="">Select a service</option>
+                <option value="plumbing">Plumbing</option>
+                <option value="electrical">Electrical</option>
+                <option value="hvac">HVAC</option>
+                <option value="landscaping">Landscaping</option>
+                <option value="cleaning">Cleaning</option>
+                <option value="maintenance">General Maintenance</option>
+              </select>
+            </div>
+
+            <div class="button-group">
+              <button type="submit" class="btn btn-primary">Create Customer</button>
+              <button type="reset" class="btn btn-secondary">Clear</button>
+            </div>
+
+            <div id="customer-message" class="message"></div>
+          </form>
+        </div>
+      </section>
+
+      <!-- View Customers Section -->
+      <section id="section-view-customers" class="section">
+        <div class="section-content">
+          <h2 style="margin-bottom: 24px;">View Customers</h2>
+          
+          <div class="customers-table-container">
+            <table id="customers-table" class="customers-table">
+              <thead>
+                <tr>
+                  <th>Customer #</th>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Phone</th>
+                  <th>Company</th>
+                  <th>State</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="customers-tbody">
+                <tr class="empty-state">
+                  <td colspan="7">No customers found. Create one to get started.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div id="customers-message" class="message"></div>
+        </div>
+      </section>
+
+      <!-- Create Invoice Section -->
+      <section id="section-create-invoice" class="section">
+        <div class="section-content">
+          <h2 style="margin-bottom: 24px;">Create Invoice</h2>
+          <div class="invoice-controls">
+            <div class="filter-group">
+              <label for="invoice-customer-search">Select Customer *</label>
+              <div class="custom-dropdown-wrapper">
+                <input type="text" id="invoice-customer-search" placeholder="Search by name or company..." autocomplete="off">
+                <div id="invoice-customer-dropdown" class="custom-dropdown-menu"></div>
+              </div>
+              <select id="invoice-customer-select" name="invoice-customer" required style="display: none;">
+                <option value="">No customer selected</option>
+              </select>
+            </div>
+          </div>
+
+          <form id="invoice-form">
+            <div class="form-group">
+              <label for="invoice-number">Invoice Number *</label>
+              <div style="display: flex; gap: 8px;">
+                <input type="text" id="invoice-number" name="invoiceNumber" required placeholder="e.g., INV-2026-0102-123456" style="flex: 1;" readonly>
+                <button type="button" class="btn btn-secondary" id="regenerate-invoice-btn" style="white-space: nowrap;">Generate New</button>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="invoice-date">Invoice Date *</label>
+                <input type="date" id="invoice-date" name="invoiceDate" required>
+              </div>
+              <div class="form-group">
+                <label for="payment-terms">Payment Terms *</label>
+                <select id="payment-terms" name="paymentTerms" required>
+                  <option value="">Select Payment Terms</option>
+                  <option value="NET30">Net 30</option>
+                  <option value="EOM">End of Month (EOM)</option>
+                  <option value="UR">Upon Receipt (UR)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="invoice-due-date">Due Date</label>
+              <input type="date" id="invoice-due-date" name="invoiceDueDate" readonly>
+            </div>
+
+            <div class="section-divider">Invoice Items</div>
+
+            <div id="invoice-items-container">
+              <div class="invoice-item">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="item-description-0">Description *</label>
+                    <input type="text" class="item-description" id="item-description-0" placeholder="e.g., Plumbing repair" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="item-qty-0">Quantity *</label>
+                    <input type="number" class="item-qty" id="item-qty-0" value="1" min="1" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="item-cost-0">Unit Cost *</label>
+                    <input type="number" class="item-cost" id="item-cost-0" placeholder="0.00" min="0" step="0.01" required>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <button type="button" class="btn btn-secondary" onclick="addInvoiceItem()">+ Add Item</button>
+
+            <div class="form-group">
+              <label for="invoice-discount">Discount (%)</label>
+              <input type="number" id="invoice-discount" name="discount" value="0" min="0" max="100" step="0.01">
+            </div>
+
+            <div class="invoice-summary">
+              <div class="summary-row">
+                <span>Subtotal:</span>
+                <span id="subtotal">$0.00</span>
+              </div>
+              <div class="summary-row">
+                <span>Discount:</span>
+                <span id="discount-amount">$0.00</span>
+              </div>
+              <div class="summary-row total">
+                <span>Total Amount:</span>
+                <span id="total-amount">$0.00</span>
+              </div>
+            </div>
+
+            <div class="button-group">
+              <button type="submit" class="btn btn-primary">Create Invoice</button>
+              <button type="reset" class="btn btn-secondary">Clear</button>
+            </div>
+
+            <div id="invoice-message" class="message"></div>
+          </form>
+        </div>
+      </section>
+
+      <!-- View Invoices Section -->
+      <section id="section-view-invoices" class="section">
+        <div class="section-content">
+          <h2 style="margin-bottom: 24px;">View Invoices</h2>
+          <div class="invoice-controls">
+            <div class="filter-group">
+              <label for="filter-customer-select">Filter by Customer:</label>
+              <select id="filter-customer-select" name="filter-customer">
+                <option value="">All Customers</option>
+              </select>
+            </div>
+
+            <div class="filter-group">
+              <label for="filter-status">Filter by Status:</label>
+              <select id="filter-status">
+                <option value="">All Status</option>
+                <option value="1">Open</option>
+                <option value="2">Past Due</option>
+                <option value="3">Paid</option>
+              </select>
+            </div>
+
+            <div class="sort-group">
+              <label for="sort-by">Sort by:</label>
+              <select id="sort-by">
+                <option value="date-desc">Date (Newest)</option>
+                <option value="date-asc">Date (Oldest)</option>
+                <option value="amount-desc">Amount (High to Low)</option>
+                <option value="amount-asc">Amount (Low to High)</option>
+                <option value="invoice-number">Invoice Number</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="invoices-table-container">
+            <table id="invoices-table" class="invoices-table">
+              <thead>
+                <tr>
+                  <th>Invoice #</th>
+                  <th>Customer</th>
+                  <th>Date</th>
+                  <th>Due Date</th>
+                  <th>Amount</th>
+                  <th>Paid</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="invoices-tbody">
+                <tr class="empty-state">
+                  <td colspan="8">No invoices found. Create one to get started.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div id="invoices-message" class="message"></div>
+        </div>
+      </section>
+
+      <!-- Pay Invoice Section -->
+      <section id="section-pay-invoice" class="section">
+        <div class="section-content">
+          <h2 style="margin-bottom: 24px;">Pay Invoice</h2>
+          <!-- Hidden selectors for JS reference -->
+          <select id="payment-customer-select" name="payment-customer" style="display:none;">
+            <option value="">No customer selected</option>
+          </select>
+          <select id="payment-invoice-select" style="display:none;">
+            <option value="">Select an invoice</option>
+          </select>
+
+          <!-- Context-Aware Header with Back Button -->
+          <div class="payment-context-header">
+            <div class="context-info">
+              <div class="context-row">
+                <span class="context-label">Customer:</span>
+                <span class="context-value" id="payment-context-customer">-</span>
+              </div>
+              <div class="context-row">
+                <span class="context-label">Invoice:</span>
+                <span class="context-value" id="payment-context-invoice">-</span>
+              </div>
+            </div>
+            <button class="btn btn-secondary" onclick="switchSection('view-invoices')" style="margin-left: auto;">← Back to Invoices</button>
+          </div>
+
+          <div id="payment-invoice-selector" class="payment-invoice-selector" style="display:none;">
+            <label for="payment-invoice-select">Select Invoice to Pay *</label>
+            <select style="display:none;">
+              <option value="">Select an invoice</option>
+            </select>
+          </div>
+
+          <div id="payment-details" class="payment-details">
+            <!-- Payment Details Section -->
+            <div class="payment-section">
+              <h3>Payment Details</h3>
+              
+              <div class="payment-summary">
+                <div class="summary-row">
+                  <span>Invoice:</span>
+                  <span id="payment-invoice-number">-</span>
+                </div>
+                <div class="summary-row">
+                  <span>Customer:</span>
+                  <span id="payment-customer-name">-</span>
+                </div>
+                <div class="summary-row">
+                  <span>Invoice Date:</span>
+                  <span id="payment-invoice-date">-</span>
+                </div>
+                <div class="summary-row">
+                  <span>Total Amount:</span>
+                  <span id="payment-invoice-amount">-</span>
+                </div>
+                <div class="summary-row">
+                  <span>Paid Amount:</span>
+                  <span id="payment-invoice-paid">-</span>
+                </div>
+                <div class="summary-row total">
+                  <span>Amount Due:</span>
+                  <span id="payment-amount-due">-</span>
+                </div>
+              </div>
+              
+              <div class="form-group">
+                <label for="payment-amount">Amount *</label>
+                <input type="number" id="payment-amount" placeholder="0.00" min="0" step="0.01" required>
+              </div>
+            </div>
+
+            <!-- Payment Method Section -->
+            <div class="payment-section">
+              <h3>Payment Method</h3>
+              <div class="payment-container">
+                <div class="tabs">
+                  <button class="tab active" data-method="card">Payment Card</button>
+                  <button class="tab" data-method="ach">Bank Debit</button>
+                </div>
+                <div class="form-content">
+                  <div id="pay-component-1"></div>
+                  <button id="submit-payment-btn" class="btn btn-primary" style="display:none;">Process Payment</button>
+                </div>
+              </div>
+            </div>
+
+            <div id="payment-message" class="message"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Payment Processing Modal -->
+  <div id="payment-processing-modal" class="modal" style="display:none;">
+    <div class="modal-content payment-processing-content">
+      <div class="payment-processing-spinner">
+        <div class="spinner"></div>
+      </div>
+      <h3>Processing Payment</h3>
+      <p>Please do not close this window or click the back button.</p>
+    </div>
+  </div>
+
+  <!-- Send Invoice Modal -->
+  <div id="send-invoice-modal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Send Invoice</h2>
+        <button class="modal-close" onclick="closeSendInvoiceModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="invoice-send-info">
+          <div class="info-row">
+            <span>Invoice:</span>
+            <strong id="send-invoice-number">-</strong>
+          </div>
+          <div class="info-row">
+            <span>Customer:</span>
+            <strong id="send-invoice-customer">-</strong>
+          </div>
+          <div class="info-row">
+            <span>Email:</span>
+            <strong id="send-invoice-email">-</strong>
+          </div>
+          <div class="info-row">
+            <span>Phone:</span>
+            <strong id="send-invoice-phone">-</strong>
+          </div>
+        </div>
+
+        <div class="send-method-buttons">
+          <button class="btn btn-primary" onclick="sendInvoiceViaEmail()" style="width: 100%; margin-bottom: 10px;">
+            📧 Send via Email
+          </button>
+          <button class="btn btn-primary" onclick="sendInvoiceViaSMS()" style="width: 100%;">
+            📱 Send via SMS
+          </button>
+        </div>
+
+        <div id="send-invoice-message" class="message"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Invoice Details Modal -->
+  <div id="invoice-details-modal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Invoice Details</h2>
+        <button class="modal-close" onclick="closeInvoiceDetailsModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="invoice-details-container">
+          <!-- Customer Information -->
+          <div class="details-section">
+            <h3>Customer Information</h3>
+            <div class="details-grid">
+              <div class="detail-item">
+                <label>Customer Name</label>
+                <p id="detail-customer-name">-</p>
+              </div>
+              <div class="detail-item">
+                <label>Customer Number</label>
+                <p id="detail-customer-number">-</p>
+              </div>
+              <div class="detail-item">
+                <label>Email</label>
+                <p id="detail-customer-email">-</p>
+              </div>
+              <div class="detail-item">
+                <label>Phone</label>
+                <p id="detail-customer-phone">-</p>
+              </div>
+              <div class="detail-item">
+                <label>Company</label>
+                <p id="detail-customer-company">-</p>
+              </div>
+              <div class="detail-item">
+                <label>Address</label>
+                <p id="detail-customer-address">-</p>
+              </div>
+              <div class="detail-item">
+                <label>City</label>
+                <p id="detail-customer-city">-</p>
+              </div>
+              <div class="detail-item">
+                <label>State</label>
+                <p id="detail-customer-state">-</p>
+              </div>
+              <div class="detail-item">
+                <label>ZIP</label>
+                <p id="detail-customer-zip">-</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Invoice Information -->
+          <div class="details-section">
+            <h3>Invoice Information</h3>
+            <div class="details-grid">
+              <div class="detail-item">
+                <label>Invoice Number</label>
+                <p id="detail-invoice-number">-</p>
+              </div>
+              <div class="detail-item">
+                <label>Invoice Date</label>
+                <p id="detail-invoice-date">-</p>
+              </div>
+              <div class="detail-item">
+                <label>Due Date</label>
+                <p id="detail-invoice-due-date">-</p>
+              </div>
+              <div class="detail-item">
+                <label>Payment Terms</label>
+                <p id="detail-payment-terms">-</p>
+              </div>
+              <div class="detail-item">
+                <label>Invoice Amount</label>
+                <p id="detail-invoice-amount">-</p>
+              </div>
+              <div class="detail-item">
+                <label>Paid Amount</label>
+                <p id="detail-paid-amount">-</p>
+              </div>
+              <div class="detail-item">
+                <label>Balance Due</label>
+                <p id="detail-balance-due">-</p>
+              </div>
+              <div class="detail-item">
+                <label>Payment Status</label>
+                <p id="detail-payment-status">-</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Invoice Details (Combined Items + Summary) -->
+          <div class="details-section">
+            <h3>Invoice Details</h3>
+            <div class="invoice-details-box">
+              <table class="details-table">
+                <thead>
+                  <tr>
+                    <th>Description</th>
+                    <th>Quantity</th>
+                    <th>Unit Cost</th>
+                    <th>Total</th>
+                  </tr>
+                </thead>
+                <tbody id="detail-items-tbody">
+                  <tr>
+                    <td colspan="4" style="text-align: center;">No items</td>
+                  </tr>
+                </tbody>
+              </table>
+              
+              <!-- Summary Totals -->
+              <div class="invoice-summary">
+                <div class="summary-row">
+                  <span>Subtotal:</span>
+                  <strong id="detail-subtotal">$0.00</strong>
+                </div>
+                <div class="summary-row">
+                  <span>Discount:</span>
+                  <strong id="detail-discount">$0.00</strong>
+                </div>
+                <div class="summary-row total">
+                  <span>Total Amount:</span>
+                  <strong id="detail-total">$0.00</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Payment History -->
+          <div class="details-section">
+            <h3>Payment History</h3>
+            <div style="overflow-x: auto;">
+              <table class="details-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Amount</th>
+                    <th>Method</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="detail-payment-history">
+                  <tr>
+                    <td colspan="4" style="text-align: center; padding: 16px;">No payments yet</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Payment Summary -->
+          <div class="details-section">
+            <div class="payment-summary-box">
+              <div class="payment-summary-header">Payment Summary</div>
+              <div class="payment-summary-rows">
+                <div class="payment-summary-row">
+                  <span>Amount Due:</span>
+                  <strong id="detail-amount-due">$0.00</strong>
+                </div>
+                <div class="payment-summary-row">
+                  <span>Total Paid:</span>
+                  <strong id="detail-total-paid">$0.00</strong>
+                </div>
+                <div class="payment-summary-row highlight">
+                  <span>Remaining Balance:</span>
+                  <strong id="detail-remaining-balance">$0.00</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Customer Details Modal -->
+  <div id="customer-details-modal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Customer Details</h2>
+        <button class="modal-close" onclick="closeCustomerDetailsModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="customer-details-container">
+          <!-- Personal Information -->
+          <div class="details-section">
+            <h3>Personal Information</h3>
+            <div class="details-grid">
+              <div class="detail-item">
+                <label>Customer Number</label>
+                <p id="detail-cust-number">-</p>
+              </div>
+              <div class="detail-item">
+                <label>First Name</label>
+                <p id="detail-cust-first-name">-</p>
+              </div>
+              <div class="detail-item">
+                <label>Last Name</label>
+                <p id="detail-cust-last-name">-</p>
+              </div>
+              <div class="detail-item">
+                <label>Email</label>
+                <p id="detail-cust-email">-</p>
+              </div>
+              <div class="detail-item">
+                <label>Phone</label>
+                <p id="detail-cust-phone">-</p>
+              </div>
+              <div class="detail-item">
+                <label>Company</label>
+                <p id="detail-cust-company">-</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Address Information -->
+          <div class="details-section">
+            <h3>Address Information</h3>
+            <div class="details-grid">
+              <div class="detail-item">
+                <label>Address</label>
+                <p id="detail-cust-address">-</p>
+              </div>
+              <div class="detail-item">
+                <label>City</label>
+                <p id="detail-cust-city">-</p>
+              </div>
+              <div class="detail-item">
+                <label>State</label>
+                <p id="detail-cust-state">-</p>
+              </div>
+              <div class="detail-item">
+                <label>ZIP Code</label>
+                <p id="detail-cust-zip">-</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Customer Invoices -->
+          <div class="details-section">
+            <h3>Invoices</h3>
+            <div style="overflow-x: auto;">
+              <table class="details-table">
+                <thead>
+                  <tr>
+                    <th>Invoice #</th>
+                    <th>Date</th>
+                    <th>Amount</th>
+                    <th>Paid</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="detail-customer-invoices">
+                  <tr>
+                    <td colspan="5" style="text-align: center; padding: 16px;">No invoices yet</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Edit and Delete Section -->
+          <div class="details-section">
+            <div class="modal-actions">
+              <button class="btn btn-primary" onclick="editCustomer(window.currentCustomerId)">Edit Customer</button>
+              <button class="btn btn-danger" onclick="deleteCustomerConfirm(window.currentCustomerId)">Delete Customer</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Configuration Modal -->
+  <div id="config-modal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Configuration</h2>
+        <button class="modal-close" onclick="closeConfig()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="api-token">API Token *</label>
+          <input type="password" id="api-token" placeholder="Enter your Payabli API token">
+          <small>This is stored in browser localStorage only</small>
+        </div>
+
+        <div class="form-group">
+          <label for="entry-point">Entry Point *</label>
+          <input type="text" id="entry-point" placeholder="e.g., 8cfec329267">
+          <small>Your Payabli entry point identifier</small>
+        </div>
+
+        <div class="form-group">
+          <label for="entry-id">Entry ID *</label>
+          <input type="text" id="entry-id" placeholder="e.g., 446">
+          <small>Numeric ID for your paypoint (used for statistics)</small>
+        </div>
+
+        <div class="form-group">
+          <label for="public-token">Public Token (for EmbeddedMethod UI) *</label>
+          <input type="text" id="public-token" placeholder="Your public token for embedded components">
+          <small>Used for the payment form component</small>
+        </div>
+
+        <div class="form-group">
+          <label for="api-base-url">API Base URL</label>
+          <input type="text" id="api-base-url" placeholder="https://api-sandbox.payabli.com" value="https://api-sandbox.payabli.com">
+          <small>Default: sandbox. Change to production URL if needed.</small>
+        </div>
+
+        <div class="button-group">
+          <button class="btn btn-primary" onclick="saveConfig()">Save Configuration</button>
+          <button class="btn btn-secondary" onclick="closeConfig()">Cancel</button>
+        </div>
+
+        <div id="config-message" class="message"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Load Payabli Component Library -->
+  <script src="https://embedded-component-sandbox.payabli.com/component.js" data-test></script>
+
+  <!-- Chart.js for pie charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+
+  <!-- App Scripts -->
+  <script src="config.js"></script>
+  <script src="api-client.js"></script>
+  <script src="customers.js"></script>
+  <script src="invoices.js"></script>
+  <script src="dashboard.js"></script>
+  <script src="payments.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
