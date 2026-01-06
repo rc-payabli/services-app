@@ -340,12 +340,37 @@ const DashboardManager = (() => {
               ticks: {
                 color: '#6b7280',
                 font: { size: 11 },
+                maxTicksLimit: 6,
                 callback: function(value) {
                   if (value >= 1000) {
-                    return '$' + (value / 1000).toFixed(0) + 'k';
+                    return '$' + (value / 1000).toFixed(value >= 10000 ? 0 : 1) + 'k';
                   }
-                  return '$' + value;
+                  return '$' + Math.round(value);
                 }
+              },
+              afterDataLimits: function(axis) {
+                // Calculate a nice step size to avoid duplicate labels
+                const range = axis.max - axis.min;
+                const targetSteps = 5;
+                let stepSize = range / targetSteps;
+                
+                // Round to nice numbers
+                const magnitude = Math.pow(10, Math.floor(Math.log10(stepSize)));
+                const normalized = stepSize / magnitude;
+                
+                if (normalized <= 1) stepSize = magnitude;
+                else if (normalized <= 2) stepSize = 2 * magnitude;
+                else if (normalized <= 5) stepSize = 5 * magnitude;
+                else stepSize = 10 * magnitude;
+                
+                // Ensure minimum step of 500 for small values
+                if (stepSize < 500 && axis.max > 1000) {
+                  stepSize = 500;
+                } else if (stepSize < 100) {
+                  stepSize = 100;
+                }
+                
+                axis.options.ticks.stepSize = stepSize;
               }
             }
           }
