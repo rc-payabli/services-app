@@ -96,7 +96,7 @@ const PaymentManager = (() => {
   };
 
   // Log successful payment
-  const logSuccessfulPayment = (invoiceId, customerId, amount, paymentMethod, cardType, maskedAccount, transactionId) => {
+  const logSuccessfulPayment = (invoiceId, customerId, amount, paymentMethod, cardType, binCardType, maskedAccount, transactionId) => {
     const successPayment = {
       id: transactionId || `success-${Date.now()}`,
       transactionId: transactionId || `success-${Date.now()}`,
@@ -105,6 +105,7 @@ const PaymentManager = (() => {
       amount: amount,
       paymentMethod: paymentMethod,
       cardType: cardType,
+      binCardType: binCardType,
       maskedAccount: maskedAccount,
       status: 1, // Successful
       createdAt: new Date().toISOString()
@@ -504,20 +505,29 @@ const processPaymentWithToken = async (paymentData, tempToken, invoice, paymentA
 
     // Extract card details from transaction response
     let cardType = null;
+    let binCardType = null;
     let maskedAccount = null;
     
-    if (getpaidData.data && getpaidData.data.paymentData) {
-      const paymentData = getpaidData.data.paymentData;
-      
+    // API returns PaymentData (capital P) - handle both cases for safety
+    const paymentData = getpaidData.data?.PaymentData || getpaidData.data?.paymentData;
+    
+    if (paymentData) {
       // Get account type (visa, mastercard, amex, discover, etc.)
-      if (paymentData.accountType) {
-        cardType = paymentData.accountType.toLowerCase();
+      // API returns AccountType (capital A)
+      if (paymentData.AccountType || paymentData.accountType) {
+        cardType = (paymentData.AccountType || paymentData.accountType).toLowerCase();
+      }
+      
+      // Get bin card type (DEBIT, CREDIT) - nested inside binData
+      if (paymentData.binData && paymentData.binData.binCardType) {
+        binCardType = paymentData.binData.binCardType.toUpperCase();
       }
       
       // Extract last 4 digits from maskedAccount
-      // maskedAccount format is like "4XXXXXXXXXXX1413" - grab the last 4 digits
-      if (paymentData.maskedAccount) {
-        const lastFour = paymentData.maskedAccount.slice(-4);
+      // API returns MaskedAccount (capital M)
+      const masked = paymentData.MaskedAccount || paymentData.maskedAccount;
+      if (masked) {
+        const lastFour = masked.slice(-4);
         maskedAccount = `X${lastFour}`;
       }
     }
@@ -525,15 +535,17 @@ const processPaymentWithToken = async (paymentData, tempToken, invoice, paymentA
     // Update invoice with payment and method info
     InvoiceManager.updateInvoicePaid(invoice.invoiceId, paymentAmount, paymentMethod, cardType, maskedAccount);
 
-    const transactionId = getpaidData.data?.paymentTransId || 'N/A';
+    // API returns PaymentTransId (capital P and T)
+    const transactionId = getpaidData.data?.PaymentTransId || getpaidData.data?.paymentTransId || 'N/A';
 
-    // Log payment to PaymentManager
+    // Log payment to PaymentManager (include binCardType)
     PaymentManager.logSuccessfulPayment(
       invoice.invoiceId,
       invoice.customerId,
       paymentAmount,
       paymentMethod,
       cardType,
+      binCardType,
       maskedAccount,
       transactionId
     );

@@ -143,14 +143,14 @@
               </div>
 
               <div class="chart-card">
-                <div class="chart-title">Payment Acceptance</div>
+                <div class="chart-title centered">Payment Acceptance</div>
                 <div id="payment-acceptance-container" style="padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 220px; gap: 20px;">
-                  <!-- Three circles will be inserted here -->
+                  <!-- Donut chart will be inserted here -->
                 </div>
               </div>
 
               <div class="chart-card">
-                <div class="chart-title">Quick Stats</div>
+                <div class="chart-title centered">Quick Stats</div>
                 <div style="padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 220px;">
                   <div class="quick-stats-grid">
                     <div class="quick-stat-item">
@@ -174,22 +174,7 @@
               </div>
             </div>
 
-            <!-- Recent Activity Card -->
-            <div class="activity-card">
-              <div class="activity-card-header">
-                <h3>Recent Activity</h3>
-                <a href="#" onclick="event.preventDefault(); document.querySelector('[data-section=view-invoices]').click();">View all activity</a>
-              </div>
-              <div class="activity-card-body">
-                <div id="activity-feed">
-                  <div class="activity-empty">
-                    <div class="activity-empty-icon">📋</div>
-                    <div>No activity yet</div>
-                    <div style="font-size: 0.75rem; margin-top: 4px; color: var(--text-muted);">Create customers and invoices to see activity here</div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <!-- Charts row removed activity card - now in right sidebar -->
           </div>
         </div>
       </section>
@@ -607,6 +592,22 @@
         </div>
       </section>
     </main>
+
+    <!-- Right Sidebar - Recent Activity -->
+    <aside class="right-sidebar">
+      <div class="right-sidebar-header">
+        <h3>Recent Activity</h3>
+      </div>
+      <div class="right-sidebar-content">
+        <div id="activity-feed">
+          <div class="activity-empty">
+            <div class="activity-empty-icon">📋</div>
+            <div>No activity yet</div>
+            <div style="font-size: 0.75rem; margin-top: 4px;">Create customers and invoices to see activity here</div>
+          </div>
+        </div>
+      </div>
+    </aside>
   </div>
 
   <!-- Payment Processing Modal -->

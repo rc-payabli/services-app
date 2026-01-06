@@ -259,7 +259,7 @@ body {
    SIDEBAR NAVIGATION - Dashio Dark Style
    ========================================================================== */
 .sidebar {
-  width: 260px;
+  width: 300px;
   background: var(--bg-sidebar);
   border-right: none;
   padding: var(--space-6) var(--space-4);
@@ -287,6 +287,174 @@ body {
 
 .sidebar::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.2);
+}
+
+/* ==========================================================================
+   RIGHT SIDEBAR - Recent Activity
+   ========================================================================== */
+.right-sidebar {
+  width: 300px;
+  min-width: 300px;
+  background: var(--bg-sidebar);
+  border-left: none;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 64px;
+  height: calc(100vh - 64px);
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.right-sidebar-header {
+  padding: var(--space-5);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--bg-sidebar);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.right-sidebar-header h3 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.right-sidebar-content {
+  flex: 1;
+  padding: var(--space-4);
+  padding-left: var(--space-5);
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.right-sidebar-content #activity-feed {
+  width: 100%;
+  position: relative;
+}
+
+/* Custom scrollbar for right sidebar */
+.right-sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.right-sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.right-sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-full);
+}
+
+.right-sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Timeline style activity feed */
+.activity-timeline {
+  position: relative;
+  padding-left: 20px;
+}
+
+/* Vertical line */
+.activity-timeline::before {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 1px;
+}
+
+.activity-timeline-item {
+  position: relative;
+  padding-bottom: 20px;
+}
+
+.activity-timeline-item:last-child {
+  padding-bottom: 0;
+}
+
+/* Timeline dot */
+.activity-timeline-item::before {
+  content: '';
+  position: absolute;
+  left: -20px;
+  top: 6px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--primary);
+  border: 2px solid var(--bg-sidebar);
+  z-index: 1;
+}
+
+/* Dot colors by type */
+.activity-timeline-item.activity-payment::before {
+  background: #10b981;
+}
+
+.activity-timeline-item.activity-invoice::before {
+  background: #3b82f6;
+}
+
+.activity-timeline-item.activity-customer::before {
+  background: #8b5cf6;
+}
+
+.activity-timeline-item.activity-email::before {
+  background: #f59e0b;
+}
+
+.activity-timeline-item.activity-cancelled::before {
+  background: #ef4444;
+}
+
+.activity-timeline-title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 4px;
+}
+
+.activity-timeline-detail {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.4;
+  word-wrap: break-word;
+}
+
+.activity-timeline-customer {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-style: italic;
+  margin-top: 2px;
+}
+
+.activity-timeline-time {
+  font-size: 0.6875rem;
+  color: rgba(255, 255, 255, 0.4);
+  margin-top: 4px;
+}
+
+/* Empty state */
+.right-sidebar .activity-empty {
+  text-align: center;
+  padding: var(--space-8) var(--space-4);
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.right-sidebar .activity-empty-icon {
+  font-size: 2.5rem;
+  margin-bottom: var(--space-3);
+  opacity: 0.4;
 }
 
 .nav-section {
@@ -827,6 +995,12 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+
+.chart-title.centered {
+  justify-content: center;
+  padding: var(--space-4) var(--space-5);
+  margin-bottom: 0;
 }
 
 /* ==========================================================================
@@ -1708,7 +1882,12 @@ button[class*="method"].active {
    ========================================================================== */
 @media (max-width: 1024px) {
   .sidebar {
-    width: 220px;
+    width: 260px;
+  }
+  
+  .right-sidebar {
+    width: 260px;
+    min-width: 260px;
   }
   
   .kpi-grid {
@@ -1726,8 +1905,12 @@ button[class*="method"].active {
   }
   
   .sidebar {
-    width: 200px;
+    width: 220px;
     padding: var(--space-4);
+  }
+  
+  .right-sidebar {
+    display: none;
   }
   
   .section {

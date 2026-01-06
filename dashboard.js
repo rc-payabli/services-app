@@ -241,7 +241,7 @@ const DashboardManager = (() => {
       
       response.forEach(item => {
         console.log('Processing stat item:', item);
-        // statX contains the period label (e.g., "2024-01", "2024-01-15", "14:00")
+        // statX contains the period label (e.g., "2024-01", "2024-01-15", "20260105h14")
         let label = item.statX || '';
         
         // Format label based on frequency
@@ -251,14 +251,22 @@ const DashboardManager = (() => {
           const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
           label = monthNames[parseInt(month) - 1] || label;
         } else if (freq === 'd') {
-          // Daily: show day/month
+          // Daily: show MM/DD format
           const parts = label.split('-');
           if (parts.length >= 3) {
-            label = `${parts[2]}/${parts[1]}`;
+            label = `${parts[1]}/${parts[2]}`;
           }
         } else if (freq === 'h') {
-          // Hourly: show hour
-          label = label.includes(':') ? label.split(':')[0] + 'h' : label;
+          // Hourly: extract hour and show as HH:00
+          // Format from API is like "20260105h14" or similar
+          const hourMatch = label.match(/h(\d+)$/);
+          if (hourMatch) {
+            const hour = hourMatch[1].padStart(2, '0');
+            label = `${hour}:00`;
+          } else if (label.includes(':')) {
+            // Alternative format like "14:00"
+            label = label.substring(0, 5);
+          }
         }
         
         labels.push(label);
@@ -397,89 +405,134 @@ const DashboardManager = (() => {
     const container = document.getElementById('payment-acceptance-container');
     if (!container) return;
 
+    // Destroy existing chart if it exists
+    if (window.paymentAcceptanceChartInstance) {
+      window.paymentAcceptanceChartInstance.destroy();
+    }
+
     // Get all successful payments from PaymentManager
     const payments = PaymentManager.getAllPayments();
     const successfulPayments = payments.filter(p => p.status === 1);
 
-    // Categorize by payment type
-    let ach = 0;
-    let debit = 0;
-    let credit = 0;
+    // Categorize by payment type and sum amounts
+    let achAmount = 0;
+    let debitAmount = 0;
+    let creditAmount = 0;
 
     successfulPayments.forEach(payment => {
+      const amount = payment.amount || 0;
+      
       if (payment.paymentMethod && payment.paymentMethod.toLowerCase() === 'ach') {
-        ach++;
-      } else if (payment.cardType) {
-        const cardType = payment.cardType.toLowerCase();
-        if (cardType.includes('debit')) {
-          debit++;
-        } else if (cardType.includes('credit') || cardType === 'visa' || cardType === 'mastercard' || cardType === 'amex' || cardType === 'discover') {
-          credit++;
+        achAmount += amount;
+      } else {
+        // Check binCardType first (from API response), then fall back to cardType
+        const cardType = (payment.binCardType || payment.cardType || '').toLowerCase();
+        if (cardType === 'debit' || cardType.includes('debit')) {
+          debitAmount += amount;
+        } else if (cardType === 'credit' || cardType.includes('credit') || cardType === 'visa' || cardType === 'mastercard' || cardType === 'amex' || cardType === 'discover') {
+          creditAmount += amount;
+        } else if (cardType) {
+          // Default card payments to credit if type is unknown but card exists
+          creditAmount += amount;
         }
       }
     });
 
-    const total = ach + debit + credit;
+    const totalAmount = achAmount + debitAmount + creditAmount;
+    const achPercent = totalAmount > 0 ? Math.round((achAmount / totalAmount) * 100) : 0;
+    const debitPercent = totalAmount > 0 ? Math.round((debitAmount / totalAmount) * 100) : 0;
+    const creditPercent = totalAmount > 0 ? Math.round((creditAmount / totalAmount) * 100) : 0;
 
-    // Create three circles similar to KingsCRM email marketing design
-    const achPercent = total > 0 ? Math.round((ach / total) * 100) : 0;
-    const debitPercent = total > 0 ? Math.round((debit / total) * 100) : 0;
-    const creditPercent = total > 0 ? Math.round((credit / total) * 100) : 0;
+    // Format currency helper
+    const formatCurrency = (amount) => {
+      return '$' + amount.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    };
 
+    // Create donut chart with legend below (showing amounts and percentages)
     container.innerHTML = `
-      <div style="display: flex; justify-content: center; align-items: center; gap: 30px; flex-wrap: wrap; width: 100%;">
-        <!-- ACH Circle -->
-        <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
-          <div style="position: relative; width: 100px; height: 100px; display: flex; align-items: center; justify-content: center;">
-            <svg width="100" height="100" style="transform: rotate(-90deg);">
-              <circle cx="50" cy="50" r="40" fill="none" stroke="#e5e7eb" stroke-width="3"/>
-              <circle cx="50" cy="50" r="40" fill="none" stroke="#10b981" stroke-width="3" 
-                      stroke-dasharray="${(achPercent / 100) * 251.2} 251.2" 
-                      stroke-linecap="round"/>
-            </svg>
-            <div style="position: absolute; text-align: center;">
-              <div style="font-size: 20px; font-weight: 700; color: #111827;">${achPercent}%</div>
-              <div style="font-size: 10px; color: #6b7280;">${ach} trans</div>
-            </div>
-          </div>
-          <span style="font-size: 13px; font-weight: 500; color: #374151;">ACH</span>
+      <div style="display: flex; flex-direction: column; align-items: center; width: 100%; padding: 10px 0;">
+        <div style="position: relative; width: 160px; height: 160px;">
+          <canvas id="paymentAcceptanceDonut"></canvas>
         </div>
-
-        <!-- Debit Circle -->
-        <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
-          <div style="position: relative; width: 100px; height: 100px; display: flex; align-items: center; justify-content: center;">
-            <svg width="100" height="100" style="transform: rotate(-90deg);">
-              <circle cx="50" cy="50" r="40" fill="none" stroke="#e5e7eb" stroke-width="3"/>
-              <circle cx="50" cy="50" r="40" fill="none" stroke="#f59e0b" stroke-width="3" 
-                      stroke-dasharray="${(debitPercent / 100) * 251.2} 251.2" 
-                      stroke-linecap="round"/>
-            </svg>
-            <div style="position: absolute; text-align: center;">
-              <div style="font-size: 20px; font-weight: 700; color: #111827;">${debitPercent}%</div>
-              <div style="font-size: 10px; color: #6b7280;">${debit} trans</div>
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px; width: 100%; max-width: 240px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="width: 10px; height: 10px; border-radius: 50%; background-color: #3b82f6;"></span>
+              <span style="font-size: 13px; color: #374151;">Credit</span>
+            </div>
+            <div style="text-align: right;">
+              <span style="font-size: 13px; font-weight: 600; color: #111827;">${formatCurrency(creditAmount)}</span>
+              <span style="font-size: 12px; color: #6b7280; margin-left: 4px;">(${creditPercent}%)</span>
             </div>
           </div>
-          <span style="font-size: 13px; font-weight: 500; color: #374151;">Debit</span>
-        </div>
-
-        <!-- Credit Circle -->
-        <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
-          <div style="position: relative; width: 100px; height: 100px; display: flex; align-items: center; justify-content: center;">
-            <svg width="100" height="100" style="transform: rotate(-90deg);">
-              <circle cx="50" cy="50" r="40" fill="none" stroke="#e5e7eb" stroke-width="3"/>
-              <circle cx="50" cy="50" r="40" fill="none" stroke="#3b82f6" stroke-width="3" 
-                      stroke-dasharray="${(creditPercent / 100) * 251.2} 251.2" 
-                      stroke-linecap="round"/>
-            </svg>
-            <div style="position: absolute; text-align: center;">
-              <div style="font-size: 20px; font-weight: 700; color: #111827;">${creditPercent}%</div>
-              <div style="font-size: 10px; color: #6b7280;">${credit} trans</div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="width: 10px; height: 10px; border-radius: 50%; background-color: #10b981;"></span>
+              <span style="font-size: 13px; color: #374151;">ACH</span>
+            </div>
+            <div style="text-align: right;">
+              <span style="font-size: 13px; font-weight: 600; color: #111827;">${formatCurrency(achAmount)}</span>
+              <span style="font-size: 12px; color: #6b7280; margin-left: 4px;">(${achPercent}%)</span>
             </div>
           </div>
-          <span style="font-size: 13px; font-weight: 500; color: #374151;">Credit</span>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="width: 10px; height: 10px; border-radius: 50%; background-color: #f59e0b;"></span>
+              <span style="font-size: 13px; color: #374151;">Debit</span>
+            </div>
+            <div style="text-align: right;">
+              <span style="font-size: 13px; font-weight: 600; color: #111827;">${formatCurrency(debitAmount)}</span>
+              <span style="font-size: 12px; color: #6b7280; margin-left: 4px;">(${debitPercent}%)</span>
+            </div>
+          </div>
         </div>
       </div>
     `;
+
+    // Create the donut chart
+    const ctx = document.getElementById('paymentAcceptanceDonut');
+    if (ctx) {
+      // Handle case where there's no data - use amounts for chart segments
+      const chartData = totalAmount > 0 ? [creditAmount, achAmount, debitAmount] : [1];
+      const chartColors = totalAmount > 0 ? ['#3b82f6', '#10b981', '#f59e0b'] : ['#e5e7eb'];
+      
+      window.paymentAcceptanceChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: totalAmount > 0 ? ['Credit', 'ACH', 'Debit'] : ['No Data'],
+          datasets: [{
+            data: chartData,
+            backgroundColor: chartColors,
+            borderWidth: 0,
+            cutout: '70%'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              enabled: totalAmount > 0,
+              backgroundColor: '#1f2937',
+              titleColor: '#ffffff',
+              bodyColor: '#ffffff',
+              padding: 10,
+              callbacks: {
+                label: function(context) {
+                  const label = context.label || '';
+                  const value = context.parsed || 0;
+                  const percentage = totalAmount > 0 ? Math.round((value / totalAmount) * 100) : 0;
+                  return `${label}: $${value.toLocaleString()} (${percentage}%)`;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
   };
 
   const updateQuickStats = () => {
@@ -529,6 +582,12 @@ const DashboardManager = (() => {
     // Combine invoice creation events and logged activities
     const allActivities = [];
     
+    // Helper to get customer name from invoice number
+    const getCustomerName = (invoiceNumber) => {
+      const invoice = invoices.find(inv => inv.invoiceNumber === invoiceNumber);
+      return invoice?.customerName || 'Customer';
+    };
+    
     // Add invoice creation events
     invoices.forEach(invoice => {
       const createdDate = new Date(invoice.createdAt || invoice.invoiceDate);
@@ -536,7 +595,8 @@ const DashboardManager = (() => {
       allActivities.push({
         timestamp: createdDate.getTime(),
         title: `Invoice created`,
-        subtitle: `#${invoice.invoiceNumber} - ${invoice.customerName || 'Customer'}`,
+        subtitle: `#${invoice.invoiceNumber}`,
+        customerName: invoice.customerName || 'Customer',
         type: 'invoice_created'
       });
     });
@@ -546,14 +606,16 @@ const DashboardManager = (() => {
     loggedActivities.forEach(activity => {
       let title = '';
       let subtitle = '';
+      const customerName = getCustomerName(activity.invoiceNumber);
+      
       switch(activity.type) {
         case 'email_sent':
           title = `Email sent`;
-          subtitle = `Invoice #${activity.invoiceNumber}`;
+          subtitle = `#${activity.invoiceNumber}`;
           break;
         case 'sms_sent':
           title = `SMS sent`;
-          subtitle = `Invoice #${activity.invoiceNumber}`;
+          subtitle = `#${activity.invoiceNumber}`;
           break;
         case 'invoice_cancelled':
           title = `Invoice cancelled`;
@@ -561,7 +623,7 @@ const DashboardManager = (() => {
           break;
         case 'payment_failed':
           title = `Payment failed`;
-          subtitle = `Invoice #${activity.invoiceNumber}`;
+          subtitle = `#${activity.invoiceNumber}`;
           break;
         case 'payment_received':
           title = `Payment received`;
@@ -573,13 +635,14 @@ const DashboardManager = (() => {
           break;
         default:
           title = `Activity`;
-          subtitle = `Invoice #${activity.invoiceNumber}`;
+          subtitle = `#${activity.invoiceNumber}`;
       }
       
       allActivities.push({
         timestamp: new Date(activity.timestamp).getTime(),
         title: title,
         subtitle: subtitle,
+        customerName: customerName,
         type: activity.type
       });
     });
@@ -588,41 +651,39 @@ const DashboardManager = (() => {
     allActivities.sort((a, b) => b.timestamp - a.timestamp);
 
     let html = '';
-    allActivities.slice(0, 6).forEach(activity => {
-      const createdDate = new Date(activity.timestamp);
-      const timeAgo = getTimeAgo(createdDate);
+    const items = allActivities.slice(0, 8);
+    
+    if (items.length > 0) {
+      html = '<div class="activity-timeline">';
       
-      // Determine icon and class based on activity type
-      let iconClass = 'invoice';
-      let icon = '📄';
-      if (activity.type === 'payment_received') {
-        iconClass = 'payment';
-        icon = '💰';
-      } else if (activity.type === 'payment_failed') {
-        iconClass = 'failed';
-        icon = '❌';
-      } else if (activity.type === 'overdue') {
-        iconClass = 'overdue';
-        icon = '⚠️';
-      } else if (activity.type === 'email_sent' || activity.type === 'sms_sent') {
-        iconClass = 'customer';
-        icon = '✉️';
-      } else if (activity.type === 'invoice_cancelled') {
-        iconClass = 'failed';
-        icon = '🚫';
-      }
+      items.forEach(activity => {
+        const createdDate = new Date(activity.timestamp);
+        const timeAgo = getTimeAgo(createdDate);
+        
+        // Determine class based on activity type
+        let activityClass = 'activity-invoice'; // default
+        if (activity.type === 'payment_received') {
+          activityClass = 'activity-payment';
+        } else if (activity.type === 'payment_failed' || activity.type === 'overdue' || activity.type === 'invoice_cancelled') {
+          activityClass = 'activity-cancelled';
+        } else if (activity.type === 'email_sent' || activity.type === 'sms_sent') {
+          activityClass = 'activity-email';
+        } else if (activity.type === 'customer_created') {
+          activityClass = 'activity-customer';
+        }
 
-      html += `
-        <div class="activity-item">
-          <div class="activity-icon ${iconClass}">${icon}</div>
-          <div class="activity-details">
-            <div class="activity-title">${activity.title}</div>
-            <div class="activity-subtitle">${activity.subtitle}</div>
+        html += `
+          <div class="activity-timeline-item ${activityClass}">
+            <div class="activity-timeline-title">${activity.title}</div>
+            <div class="activity-timeline-detail">${activity.subtitle}</div>
+            <div class="activity-timeline-customer">${activity.customerName}</div>
+            <div class="activity-timeline-time">${timeAgo}</div>
           </div>
-          <div class="activity-time">${timeAgo}</div>
-        </div>
-      `;
-    });
+        `;
+      });
+      
+      html += '</div>';
+    }
 
     if (html === '') {
       html = `
