@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout | SUIT YOURSELF</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    /* Payment Method Styles */
+    .payment-divider {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin: 1.5rem 0;
+      color: #666;
+    }
+    .payment-divider hr {
+      flex: 1;
+      border: none;
+      border-top: 1px solid #ddd;
+    }
+    .payment-divider span {
+      font-size: 0.85rem;
+      white-space: nowrap;
+    }
+    
+    .payment-tabs {
+      display: flex;
+      border-bottom: 1px solid #ddd;
+      margin-bottom: 1.5rem;
+    }
+    .payment-tab {
+      flex: 1;
+      padding: 1rem;
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9rem;
+      color: #666;
+      transition: all 0.2s;
+    }
+    .payment-tab:hover {
+      color: #000;
+    }
+    .payment-tab.active {
+      color: #000;
+      border-bottom-color: #000;
+    }
+    
+    .manual-payment-section {
+      margin-top: 1rem;
+    }
+    
+    #manual-payment-container {
+      min-height: 200px;
+    }
+    
+    .pay-button {
+      width: 100%;
+      padding: 1rem 2rem;
+      background: #000;
+      color: #fff;
+      border: none;
+      font-family: 'Inter', sans-serif;
+      font-size: 1rem;
+      cursor: pointer;
+      margin-top: 1.5rem;
+      transition: background 0.2s;
+    }
+    .pay-button:hover {
+      background: #333;
+    }
+    .pay-button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body class="checkout-page">
+  <!-- Header -->
+  <header class="header header-light header-minimal">
+    <nav class="nav">
+      <a href="/" class="logo">SUIT YOURSELF</a>
+      <span class="checkout-title">Checkout</span>
+      <a href="/products.html" class="continue-shopping">Continue Shopping</a>
+    </nav>
+  </header>
+
+  <!-- Checkout Content -->
+  <main class="checkout-container">
+    <!-- Order Summary -->
+    <aside class="checkout-summary">
+      <h2>Order Summary</h2>
+      <div class="summary-items" id="summary-items">
+        <!-- Populated by JS -->
+      </div>
+      <div class="summary-totals">
+        <div class="summary-row">
+          <span>Subtotal</span>
+          <span id="summary-subtotal">$0.00</span>
+        </div>
+        <div class="summary-row">
+          <span>Shipping</span>
+          <span>Free</span>
+        </div>
+        <div class="summary-row summary-total">
+          <span>Total</span>
+          <span id="summary-total">$0.00</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Payment Section -->
+    <section class="checkout-payment">
+      <div class="checkout-steps">
+        <!-- Customer Info -->
+        <div class="checkout-step" id="step-customer">
+          <h2>1. Contact Information</h2>
+          <div class="form-group">
+            <input type="email" id="customer-email" placeholder="Email address" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <input type="text" id="customer-first" placeholder="First name" required>
+            </div>
+            <div class="form-group">
+              <input type="text" id="customer-last" placeholder="Last name" required>
+            </div>
+          </div>
+        </div>
+
+        <!-- Payment Methods -->
+        <div class="checkout-step" id="step-payment">
+          <h2>2. Payment</h2>
+          <p class="payment-subtitle">Select a payment method to complete your order</p>
+          
+          <!-- Loading State -->
+          <div id="payment-loading" class="loading-placeholder">
+            <div class="spinner"></div>
+            <span>Loading payment options...</span>
+          </div>
+          
+          <!-- Express Checkout (Apple Pay / Google Pay) -->
+          <div id="express-checkout-section" class="hidden">
+            <div id="express-checkout-container"></div>
+            
+            <!-- Divider -->
+            <div class="payment-divider">
+              <hr>
+              <span>or pay with card or bank account</span>
+              <hr>
+            </div>
+          </div>
+          
+          <!-- Manual Payment Methods (Card / ACH) -->
+          <div id="manual-payment-section" class="manual-payment-section hidden">
+            <!-- Tabs -->
+            <div class="payment-tabs">
+              <button class="payment-tab active" id="tab-card" type="button">Credit / Debit Card</button>
+              <button class="payment-tab" id="tab-ach" type="button">Bank Account (ACH)</button>
+            </div>
+            
+            <!-- Payment Form Container -->
+            <div id="manual-payment-container"></div>
+            
+            <!-- Pay Button -->
+            <button type="button" class="pay-button" id="btn-pay">
+              Pay <span id="btn-pay-amount">$0.00</span>
+            </button>
+          </div>
+          
+          <div class="payment-status" id="payment-status"></div>
+          
+          <div class="secure-badge">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0110 0v4"></path>
+            </svg>
+            <span>Secure checkout - Your payment is protected</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer footer-minimal">
+    <p>&copy; 2025 Suit Yourself. Secure checkout powered by Payabli.</p>
+  </footer>
+
+  <script src="/js/store.js"></script>
+  <script>
+    let orderId = null;
+    let verificationData = null;
+    let orderTotal = 0;
+    let orderServiceFee = 0;
+    
+    // Component instances
+    let expressCheckoutComponent = null;
+    let manualPaymentComponent = null;
+    
+    // Config storage
+    let baseConfig = null;
+    let cardConfig = null;
+    let achConfig = null;
+    
+    // =================================================================
+    // INITIALIZATION
+    // =================================================================
+    
+    async function initCheckout() {
+      const cart = Store.getCart();
+      
+      if (!cart || cart.items.length === 0) {
+        window.location.href = '/products.html';
+        return;
+      }
+      
+      renderSummary(cart);
+    }
+    
+    function renderSummary(cart) {
+      const itemsEl = document.getElementById('summary-items');
+      const total = cart.subtotal;
+      
+      itemsEl.innerHTML = cart.items.map(item => `
+        <div class="summary-item">
+          <img src="${item.image}" alt="${item.name}">
+          <div class="item-details">
+            <h4>${item.name}</h4>
+            <p>Size: ${item.size} | Qty: ${item.quantity}</p>
+          </div>
+          <span class="item-price">$${(item.price * item.quantity).toFixed(2)}</span>
+        </div>
+      `).join('');
+      
+      document.getElementById('summary-subtotal').textContent = `$${cart.subtotal.toFixed(2)}`;
+      document.getElementById('summary-total').textContent = `$${total.toFixed(2)}`;
+    }
+    
+    // =================================================================
+    // ORDER CREATION & PAYMENT LOADING
+    // =================================================================
+    
+    async function createOrderAndLoadPayment() {
+      const email = document.getElementById('customer-email').value;
+      const firstName = document.getElementById('customer-first').value;
+      const lastName = document.getElementById('customer-last').value;
+      
+      if (!email || !firstName || !lastName) {
+        showStatus('error', 'Please fill in all contact fields');
+        return;
+      }
+      
+      showStatus('loading', 'Preparing checkout...');
+      
+      try {
+        // Get cart from localStorage
+        const cart = Store.getCart();
+        
+        // Create order with cart items
+        const orderResponse = await fetch('/api/orders/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            cartId: Store.getCartId(),
+            customer: { email, firstName, lastName },
+            items: cart.items
+          })
+        });
+        
+        if (!orderResponse.ok) throw new Error('Failed to create order');
+        const orderData = await orderResponse.json();
+        orderId = orderData.orderId;
+        
+        // Get secure checkout config
+        const configResponse = await fetch(`/api/checkout/config/${orderId}`);
+        if (!configResponse.ok) throw new Error('Failed to load payment');
+        const config = await configResponse.json();
+        
+        // Store verification data and amounts
+        verificationData = config.verification;
+        orderTotal = config.order.total;
+        orderServiceFee = 0;
+        
+        // Update summary with server amounts
+        document.getElementById('summary-subtotal').textContent = `$${config.order.subtotal.toFixed(2)}`;
+        document.getElementById('summary-total').textContent = `$${config.order.total.toFixed(2)}`;
+        document.getElementById('btn-pay-amount').textContent = `$${config.order.total.toFixed(2)}`;
+        
+        // Store base config
+        baseConfig = config;
+        
+        // Load Payabli script and initialize components
+        await loadPayabliScript(config.componentUrl);
+        initializePaymentComponents(config);
+        
+      } catch (error) {
+        console.error('Checkout error:', error);
+        showStatus('error', 'Failed to load checkout. Please try again.');
+      }
+    }
+    
+    function loadPayabliScript(url) {
+      return new Promise((resolve, reject) => {
+        if (window.PayabliComponent) {
+          resolve();
+          return;
+        }
+        const script = document.createElement('script');
+        script.src = url;
+        script.onload = resolve;
+        script.onerror = () => reject(new Error('Failed to load payment component'));
+        document.head.appendChild(script);
+      });
+    }
+    
+    // =================================================================
+    // PAYMENT COMPONENTS INITIALIZATION
+    // =================================================================
+    
+    function initializePaymentComponents(config) {
+      const { payabliConfig } = config;
+      const email = document.getElementById('customer-email').value;
+      const firstName = document.getElementById('customer-first').value;
+      const lastName = document.getElementById('customer-last').value;
+      
+      // Hide loading
+      document.getElementById('payment-loading').classList.add('hidden');
+      
+      // Initialize ExpressCheckout (Apple Pay / Google Pay)
+      initializeExpressCheckout(payabliConfig, { email, firstName, lastName });
+      
+      // Initialize Manual Payment (Card / ACH)
+      initializeManualPayment(payabliConfig, { email, firstName, lastName });
+    }
+    
+    function initializeExpressCheckout(config, customer) {
+      const expressConfig = {
+        type: 'expressCheckout',
+        rootContainer: 'express-checkout-container',
+        token: config.token,
+        entryPoint: config.entryPoint,
+        expressCheckout: config.expressCheckout,
+        customerData: {
+          customerNumber: orderId,
+          firstName: customer.firstName,
+          lastName: customer.lastName,
+          billingEmail: customer.email
+        },
+        
+        // ↓↓↓ DEBUG CALLBACKS FOR EXPRESSCHECKOUT ↓↓↓
+        functionCallBackReady: (data) => {
+          console.log('READY:', data);
+          console.log('  - Apple Pay available:', data.applePay);
+          console.log('  - Google Pay available:', data.googlePay);
+          
+          // Show express checkout section if any wallet is available
+          if (data.applePay || data.googlePay) {
+            document.getElementById('express-checkout-section').classList.remove('hidden');
+          }
+          
+          // Always show manual payment section
+          document.getElementById('manual-payment-section').classList.remove('hidden');
+          hideStatus();
+        },
+        
+        functionCallBackSuccess: async (data) => {
+          console.log('SUCCESS:', data);
+          console.log('  - Full response data:', JSON.stringify(data, null, 2));
+          console.log('  - Payment Method:', data.paymentMethod);
+          console.log('  - Reference ID:', data.data?.responseData?.referenceId);
+          console.log('  - Result Text:', data.data?.responseData?.resultText);
+          console.log('  - Customer ID:', data.data?.responseData?.customerId);
+          
+          // Get the email we passed IN to the component
+          const inputBillingEmail = customer.email;
+          // Get the emails returned FROM the wallet
+          const walletShippingEmail = data.data?.responseData?.shippingContact?.emailAddress;
+          const walletBillingEmail = data.data?.responseData?.billingContact?.emailAddress;
+          
+          console.log('  ========================================');
+          console.log('  🔍 EMAIL COMPARISON TEST');
+          console.log('  ========================================');
+          console.log('  📤 EMAIL WE PASSED IN (billingEmail):', inputBillingEmail);
+          console.log('  📥 EMAIL FROM WALLET (shippingContact):', walletShippingEmail);
+          console.log('  📥 EMAIL FROM WALLET (billingContact):', walletBillingEmail);
+          console.log('  ----------------------------------------');
+          if (walletShippingEmail && inputBillingEmail !== walletShippingEmail) {
+            console.log('  ✅ DIFFERENT! shippingContact.emailAddress is the WALLET HOLDER email');
+          } else if (walletShippingEmail && inputBillingEmail === walletShippingEmail) {
+            console.log('  ⚠️  SAME - Could be coincidence or echoed back. Test with different emails to confirm.');
+          } else {
+            console.log('  ❌ No shippingContact.emailAddress returned - check requiredShippingContactFields config');
+          }
+          console.log('  ========================================');
+          
+          console.log('  --- FULL SHIPPING CONTACT ---');
+          console.log('  - Shipping Contact:', data.data?.responseData?.shippingContact);
+          console.log('  --- FULL BILLING CONTACT ---');
+          console.log('  - Billing Contact:', data.data?.responseData?.billingContact);
+          
+          await confirmPayment(data.data.responseData.referenceId, data.paymentMethod);
+        },
+        
+        functionCallBackError: (data) => {
+          console.log('ERROR:', data);
+          console.log('  - Full error data:', JSON.stringify(data, null, 2));
+          console.log('  - Payment Method:', data.paymentMethod);
+          console.log('  - Error Response Code:', data.error?.responseCode);
+          console.log('  - Error Response Text:', data.error?.responseText);
+          console.log('  - Error Explanation:', data.error?.responseData?.explanation);
+          console.log('  - Error Todo Action:', data.error?.responseData?.todoAction);
+          showStatus('error', 'Payment failed. Please try again.');
+        },
+        
+        functionCallBackCancel: (data) => {
+          console.log('CANCELLED:', data);
+          console.log('  - Full cancel data:', JSON.stringify(data, null, 2));
+          console.log('  - Payment Method:', data.paymentMethod);
+          console.log('  - Is Trusted:', data.data?.isTrusted);
+          showStatus('info', 'Payment cancelled. You can try again when ready.');
+          setTimeout(hideStatus, 3000);
+        }
+        // ↑↑↑ END DEBUG CALLBACKS ↑↑↑
+      };
+      
+      expressCheckoutComponent = new PayabliComponent(expressConfig);
+    }
+    
+    function initializeManualPayment(config, customer) {
+      // Card configuration
+      cardConfig = {
+        type: 'methodEmbedded',
+        rootContainer: 'manual-payment-container',
+        defaultOpen: 'card',
+        token: config.token,
+        entryPoint: config.entryPoint,
+        customerData: {
+          customerNumber: orderId,
+          firstName: customer.firstName,
+          lastName: customer.lastName,
+          billingEmail: customer.email
+        },
+        card: {
+          enabled: true,
+          visa: true,
+          mastercard: true,
+          amex: true,
+          discover: true,
+          inputs: {
+            cardHolderName: {
+              label: 'Name on Card',
+              placeholder: 'John Doe',
+              floating: false,
+              size: 12,
+              row: 0,
+              order: 0
+            },
+            cardNumber: {
+              label: 'Card Number',
+              placeholder: '1234 5678 9012 3456',
+              floating: false,
+              size: 12,
+              row: 1,
+              order: 0
+            },
+            cardExpirationDate: {
+              label: 'Expiration',
+              placeholder: 'MM/YY',
+              floating: false,
+              size: 6,
+              row: 2,
+              order: 0
+            },
+            cardCvv: {
+              label: 'CVV',
+              placeholder: '123',
+              floating: false,
+              size: 3,
+              row: 2,
+              order: 1
+            },
+            cardZipcode: {
+              label: 'ZIP Code',
+              placeholder: '12345',
+              floating: false,
+              size: 3,
+              row: 2,
+              order: 2,
+              country: ['us']
+            }
+          }
+        },
+        ach: {
+          enabled: false
+        },
+        functionCallBackSuccess: async (response) => {
+          console.log('Card payment success:', response);
+          await confirmPayment(response.responseData.referenceId, 'card');
+        },
+        functionCallBackError: (errors) => {
+          console.error('Card payment error:', errors);
+          showStatus('error', 'Payment failed. Please check your card details.');
+        },
+        functionCallBackReady: () => {
+          console.log('Card component ready');
+        }
+      };
+      
+      // ACH configuration
+      achConfig = {
+        type: 'methodEmbedded',
+        rootContainer: 'manual-payment-container',
+        defaultOpen: 'ach',
+        token: config.token,
+        entryPoint: config.entryPoint,
+        customerData: {
+          customerNumber: orderId,
+          firstName: customer.firstName,
+          lastName: customer.lastName,
+          billingEmail: customer.email
+        },
+        card: {
+          enabled: false
+        },
+        ach: {
+          enabled: true,
+          checking: true,
+          savings: true,
+          inputs: {
+            achAccountHolderName: {
+              label: 'Account Holder Name',
+              placeholder: 'John Doe',
+              floating: false,
+              size: 12,
+              row: 0,
+              order: 0
+            },
+            achAccountType: {
+              label: 'Account Type',
+              floating: false,
+              size: 6,
+              row: 1,
+              order: 0
+            },
+            achRouting: {
+              label: 'Routing Number',
+              placeholder: '123456789',
+              floating: false,
+              size: 6,
+              row: 1,
+              order: 1
+            },
+            achAccount: {
+              label: 'Account Number',
+              placeholder: '1234567890',
+              floating: false,
+              size: 12,
+              row: 2,
+              order: 0,
+              confirm: true
+            }
+          }
+        },
+        functionCallBackSuccess: async (response) => {
+          console.log('ACH payment success:', response);
+          await confirmPayment(response.responseData.referenceId, 'ach');
+        },
+        functionCallBackError: (errors) => {
+          console.error('ACH payment error:', errors);
+          showStatus('error', 'Payment failed. Please check your bank details.');
+        },
+        functionCallBackReady: () => {
+          console.log('ACH component ready');
+        }
+      };
+      
+      // Initialize with card by default
+      manualPaymentComponent = new PayabliComponent(cardConfig);
+    }
+    
+    // =================================================================
+    // PAYMENT CONFIRMATION
+    // =================================================================
+    
+    async function confirmPayment(referenceId, paymentMethod) {
+      showStatus('loading', 'Confirming your order...');
+      
+      try {
+        const confirmResponse = await fetch('/api/checkout/confirm', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orderId,
+            referenceId,
+            paymentMethod,
+            verification: verificationData
+          })
+        });
+        
+        const result = await confirmResponse.json();
+        
+        if (confirmResponse.ok && result.success) {
+          Store.clearCart();
+          window.location.href = `/success.html?orderId=${orderId}`;
+        } else {
+          showStatus('error', result.error || 'Payment could not be confirmed');
+        }
+        
+      } catch (error) {
+        console.error('Confirmation error:', error);
+        showStatus('error', 'Payment confirmation failed. Please contact support.');
+      }
+    }
+    
+    // =================================================================
+    // TAB SWITCHING
+    // =================================================================
+    
+    function switchToCard() {
+      document.getElementById('tab-card').classList.add('active');
+      document.getElementById('tab-ach').classList.remove('active');
+      
+      if (manualPaymentComponent && cardConfig) {
+        manualPaymentComponent.updateConfig(cardConfig);
+      }
+    }
+    
+    function switchToACH() {
+      document.getElementById('tab-card').classList.remove('active');
+      document.getElementById('tab-ach').classList.add('active');
+      
+      if (manualPaymentComponent && achConfig) {
+        manualPaymentComponent.updateConfig(achConfig);
+      }
+    }
+    
+    // =================================================================
+    // PAY BUTTON
+    // =================================================================
+    
+    function executePayment() {
+      if (!manualPaymentComponent) return;
+      
+      showStatus('loading', 'Processing payment...');
+      
+      manualPaymentComponent.payabliExec('pay', {
+        paymentDetails: {
+          totalAmount: orderTotal,
+          categories: [
+            {
+              label: 'Order ' + orderId,
+              amount: orderTotal,
+              qty: 1
+            }
+          ]
+        }
+      });
+    }
+    
+    // =================================================================
+    // UI HELPERS
+    // =================================================================
+    
+    function showStatus(type, message) {
+      const statusEl = document.getElementById('payment-status');
+      statusEl.className = `payment-status ${type}`;
+      
+      if (type === 'loading') {
+        statusEl.innerHTML = `<div class="spinner"></div><span>${message}</span>`;
+      } else {
+        statusEl.innerHTML = `<span>${message}</span>`;
+      }
+      statusEl.style.display = 'flex';
+    }
+    
+    function hideStatus() {
+      document.getElementById('payment-status').style.display = 'none';
+    }
+    
+    // =================================================================
+    // EVENT LISTENERS
+    // =================================================================
+    
+    // Tab switching
+    document.getElementById('tab-card').addEventListener('click', switchToCard);
+    document.getElementById('tab-ach').addEventListener('click', switchToACH);
+    
+    // Pay button
+    document.getElementById('btn-pay').addEventListener('click', executePayment);
+    
+    // Auto-trigger payment load when customer info is filled
+    let paymentLoaded = false;
+    
+    function checkAndLoadPayment() {
+      if (paymentLoaded) return;
+      
+      const email = document.getElementById('customer-email').value;
+      const firstName = document.getElementById('customer-first').value;
+      const lastName = document.getElementById('customer-last').value;
+      
+      if (email && firstName && lastName) {
+        paymentLoaded = true;
+        createOrderAndLoadPayment();
+      }
+    }
+    
+    document.getElementById('customer-email').addEventListener('blur', checkAndLoadPayment);
+    document.getElementById('customer-first').addEventListener('blur', checkAndLoadPayment);
+    document.getElementById('customer-last').addEventListener('blur', checkAndLoadPayment);
+    
+    // Initialize
+    Store.init();
+    initCheckout();
+  </script>
+</body>
+</html>
