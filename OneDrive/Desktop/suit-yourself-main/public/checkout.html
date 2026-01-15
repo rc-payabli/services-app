@@ -407,6 +407,10 @@
           console.log('  --- FULL BILLING CONTACT ---');
           console.log('  - Billing Contact:', data.data?.responseData?.billingContact);
           
+          // DEBUG: Alert to pause so you can view console logs before redirect
+          // Remove this alert after testing!
+          alert('Check console for email comparison logs. Click OK to continue to confirmation.');
+          
           await confirmPayment(data.data.responseData.referenceId, data.paymentMethod);
         },
         
